@@ -126,6 +126,15 @@ def escena():
 
     c1.light = Light(V3(0, 3, 0), 1, color(255, 255, 255)) #Creando la luz.
 
+def envmap(path): #Setter del envmap.
+    c1.envmap = path
+
+def get_background(direction):
+    if c1.envmap:
+        return c1.envmap.get_color(direction)
+    else:
+        return color(0, 0, 0)
+
 def cast_ray(orig, direction): #Método para el rayo.
     #Revisa contra que chocó y en base a eso regresa un material.
     

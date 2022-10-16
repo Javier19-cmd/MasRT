@@ -25,6 +25,9 @@ class Raytracer(object):
     #Variable para guardar la luz.
     light = None
 
+    #Variable para guardar el envmap.
+    envmap = None 
+
     #Método que escribe el archivo bmp.
     def write(self): #Escribir un archivo, pero con el zbuffer.
             #Se abre el archivo con la forma de bw.
