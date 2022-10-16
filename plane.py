@@ -3,23 +3,25 @@ from intersect import *
 from vector import *
 
 class Plane(object):
-    def __init__(self, y, w, l, material):
-        self.y = y
+    def __init__(self, center, w, h, material):
+        self.center = center
         self.w = w
-        self.l = l
+        self.l = h
         self.material = material
 
     def ray_intersect(self, orig, direction): #Método para la intersección.
-        d = -(orig.y + direction.y) / direction.y
-        impact = orig + direction * d
+        d = -(orig.y + self.center.y) / direction.y #Calculando la distancia. 
+        impact = orig + (direction * d)
         normal = V3(0, 1, 0)
 
 
         if d <= 0 or \
-            impact.x < -2 or impact.x > 2 or \
-            impact.z > -5 or impact.z < -10: #Si la distancia es menor o igual a 0, entonces no hay intersección.
+            impact.x > (self.center.x + self.w/2) or \
+            impact.x < (self.center.x - self.w/2) or \
+            impact.z > (self.center.z + self.l/2) or \
+            impact.z < (self.center.z - self.l/2):
             return None
-
+    
         return Intersect(
             distance=d,
             point=impact,

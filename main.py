@@ -12,8 +12,9 @@ def main():
     #glSphere(3, 1, -16, 0.5)
     
     #Creando esferas.
-    glSphere() #Esfera 3 color azul.
+    #glSphere() #Esfera 3 color azul.
     #glPlane() #Plano.
+    escena() #Escena.
 
     finish()
 

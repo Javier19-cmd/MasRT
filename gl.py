@@ -66,39 +66,11 @@ def glSphere(): #Método para crear las esferas.
     white = Material(diffuse=color(255, 250, 250), albedo=[1, 0], spec=5) #Blanco.
 
     #Creando esferas.
-    c1.spheres = [
-        #Cabezas
-        Sphere(V3(-3, -4,-12), 1, brown), 
-        Sphere(V3(2, -4,-12), 1, white),
-
-        #Orejas
-        Sphere(V3(-3.7, -5,-12), 0.3, brown),
-        Sphere(V3(-2.3, -5,-12), 0.3, brown),
-
-        Sphere(V3(2.7, -5,-12), 0.3, white),
-        Sphere(V3(1.4, -5,-12), 0.3, white),
-
-        # #Bocas.
-        # Sphere(V3(-4, -3.5,-12), 0.3, brown),
-        # Sphere(V3(4, -3.5,-12), 0.3, white),
+    c1.scene = [
 
         #Esferas de aluminio.
         Sphere(V3(-3, -2.2,-12), 0.8, al),
         Sphere(V3(2, -2.2,-12), 0.8, al2),
-
-        #Bracitos.
-        Sphere(V3(-3.9, -2.7,-12), 0.3, brown),
-        Sphere(V3(-2.1, -2.7,-12), 0.3, brown),
-
-        Sphere(V3(1.1, -2.7,-12), 0.3, white),
-        Sphere(V3(2.9, -2.7,-12), 0.3, white),
-
-        #Piernas.
-        Sphere(V3(-3.9, -1.6,-12), 0.3, brown),
-        Sphere(V3(-2.1, -1.6,-12), 0.3, brown),
-
-        Sphere(V3(1.1, -1.6,-12), 0.3, white),
-        Sphere(V3(2.9, -1.6,-12), 0.3, white),
 
         #Creando esfera en el centro para probar la luz.
         #Sphere(V3(0, 0,-12), 3, brown),
@@ -110,11 +82,49 @@ def glSphere(): #Método para crear las esferas.
     #c1.light = Light(V3(0, 0, 0), 1, color(255, 255, 255)) #Creando la luz.
 
 def glPlane(): #Método para crear el plano.
-    c1.planes = [
-        Plane(V3(0, 5, 0), 2, 2, Material(diffuse=color(255, 10, 55), albedo=[0.5, 0.1], spec=10))
+
+    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1], spec=10)
+
+    c1.scene = [
+        Plane(V3(0, 2, -6), 2, 2, mat)
     ]
 
-    c1.light = Light(V3(2, 2, 2), 1.5, color(255, 255, 255))
+
+    c1.light = Light(V3(0, 3, 0), 1, color(255, 255, 255)) #Creando la luz.
+
+def escena():
+    #c1.spheres.append(Sphere(V3(x, y, z), r, col)) #Guardando la esfera en el array de esferas.
+    #c1.colors.append(col) #Guardando el color de la esfera.
+    
+    #Crenado el material de las esferas que tienen los osos en medio.
+    al = Material(diffuse=color(128, 128, 128), albedo=[0.61, 0.25], spec=10) #Aluminio. 
+    al2 = Material(diffuse=color(255, 0, 0), albedo=[0.61, 0.25], spec=10) #Aluminio.
+    
+    sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3], spec=50) #Silicón.
+
+    #Colores para los osos.
+    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0], spec=5) #Marrón.
+    #brown = Material(diffuse=color(139, 69, 19)) #Marrón.
+    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0], spec=5) #Blanco.
+    
+    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1], spec=10)
+
+    mirror = Material(diffuse=color(255, 255, 255), albedo=[0.1, 0.8], spec=1425)
+    
+    #Creando esferas.
+    c1.scene = [
+
+        #Esferas de aluminio.
+        Sphere(V3(-3, -2.2,-12), 0.8, al),
+        Sphere(V3(2, -2.2,-12), 0.8, al2),
+        Plane(V3(0, 2, -6), 2, 2, mat)
+
+        #Creando esfera en el centro para probar la luz.
+        #Sphere(V3(0, 0,-12), 3, brown),
+
+    ]
+
+    c1.light = Light(V3(0, 3, 0), 1, color(255, 255, 255)) #Creando la luz.
 
 def cast_ray(orig, direction): #Método para el rayo.
     #Revisa contra que chocó y en base a eso regresa un material.
@@ -168,7 +178,7 @@ def scene_intersect(orig, direction):
     material = None #Se crea el material.
     intersect = None #Se crea la intersección.
 
-    for o in c1.spheres: #Recorriendo el array de esferas.
+    for o in c1.scene: #Recorriendo el array de esferas.
         object_intersect = o.ray_intersect(orig, direction) #Llamando al método para el rayo.
         if object_intersect: #Si hay intersección, entonces se regresa el material.
             if object_intersect.distance < zBuffer:
