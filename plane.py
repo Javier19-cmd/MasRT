@@ -19,7 +19,7 @@ class Plane(object):
             impact.x > (self.center.x + self.w/2) or \
             impact.x < (self.center.x - self.w/2) or \
             impact.z > (self.center.z + self.l/2) or \
-            impact.z < (self.center.z - self.l/2):
+            impact.z < (self.center.z - self.l/2): #Detectando la no colisión.
             return None
     
         return Intersect(
