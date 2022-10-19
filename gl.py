@@ -42,7 +42,8 @@ def glClear(): #Función para limpiar la pantalla.
         ] #Se crea el framebuffer.
 
 def glColor(r, g, b): #Función para el color de la figura.
-    c1.colorPunto = color(r, g, b).toBytes() #Se le asigna el color.
+    #c1.colorPunto = color(r, g, b).toBytes() #Se le asigna el color.
+    c1.colorPunto = color(r, g, b) #Se le asigna el color.
 
 #Defininiendo el point.
 def point(x, y, c): 
@@ -61,9 +62,9 @@ def glSphere(): #Método para crear las esferas.
     sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3], spec=50) #Silicón.
 
     #Colores para los osos.
-    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0], spec=5) #Marrón.
+    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0.4], spec=5) #Marrón.
     #brown = Material(diffuse=color(139, 69, 19)) #Marrón.
-    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0], spec=5) #Blanco.
+    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0, 0.3], spec=5) #Blanco.
 
     #Creando esferas.
     c1.scene = [
@@ -103,7 +104,7 @@ def escena():
     sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3, 0.1], spec=50) #Silicón.
 
     #Colores para los osos.
-    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0], spec=5) #Marrón.
+    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0.6], spec=80) #Marrón.
     #brown = Material(diffuse=color(139, 69, 19)) #Marrón.
     white = Material(diffuse=color(255, 250, 250), albedo=[1, 0, 0], spec=5) #Blanco.
     
@@ -115,12 +116,10 @@ def escena():
     c1.scene = [
 
         #Esferas de aluminio.
-        Sphere(V3(-3, -2.2,-12), 0.8, al),
-        Sphere(V3(2, -2.2,-12), 0.8, al2),
-        Plane(V3(0, 0.5, -6), 2, 2, mirror)
-
-        #Creando esfera en el centro para probar la luz.
-        #Sphere(V3(0, 0,-12), 3, brown),
+        Sphere(V3(-0.5, -2.2,-12), 0.8, al),
+        Sphere(V3(1, -2.2,-12), 0.8, sil),
+        Sphere(V3(-2, -2.2,-12), 0.8, mirror),
+        Plane(V3(0, 0.5, -6), 2, 2, brown)
 
     ]
 
@@ -173,7 +172,7 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
 
     shadow_intensity = 0 #Intensidad de la sombra.
     if shadowm: 
-        shadow_intensity = 0.7 #Si hay sombra, entonces la intensidad es 0.6.
+        shadow_intensity = 0.9 #Si hay sombra, entonces la intensidad es 0.6.
 
     diffuse_intensity = light_dir @ intersect.normal #Calculando la intensidad de la luz.
     
