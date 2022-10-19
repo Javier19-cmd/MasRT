@@ -1,4 +1,6 @@
 from utilidades import * #Archivo de utilidades.
+from material import * #Archivo de material.
+
 #Clase para el raytracer.
 class Raytracer(object):
     #Ancho y alto de la imagen.
@@ -24,6 +26,9 @@ class Raytracer(object):
 
     #Variable para guardar la luz.
     light = None
+
+    #Máximo de recursión.
+    max_recursion_depth = 5
 
     #Variable para guardar el envmap.
     envmap = None 
@@ -63,7 +68,7 @@ class Raytracer(object):
             #Pintando el archivo de color negro.
             for y in range(self.height):
                 for x in range(self.width):
-                    f.write(self.framebuffer[y][x])
+                    f.write(self.framebuffer[y][x].toBytes())
 
             #print("Archivo escrito")
 

@@ -33,7 +33,7 @@ def glCreateWindow(width, height): #Función para crear la ventana.
      #   print("Se ingresó una letra en vez de número.")
 
 def glClearColor(r, g, b): #Función para el color de fondo.
-    c1.color_fondo = color(r, g, b).toBytes() #Se le asigna el color.
+    c1.color_fondo = color(r, g, b) #Se le asigna el color.
 
 def glClear(): #Función para limpiar la pantalla.
     c1.framebuffer = [
@@ -97,19 +97,19 @@ def escena():
     #c1.colors.append(col) #Guardando el color de la esfera.
     
     #Crenado el material de las esferas que tienen los osos en medio.
-    al = Material(diffuse=color(128, 128, 128), albedo=[0.61, 0.25], spec=10) #Aluminio. 
-    al2 = Material(diffuse=color(255, 0, 0), albedo=[0.61, 0.25], spec=10) #Aluminio.
+    al = Material(diffuse=color(128, 128, 128), albedo=[0.61, 0.25, 0], spec=10) #Aluminio. 
+    al2 = Material(diffuse=color(255, 0, 0), albedo=[0.61, 0.25, 0], spec=10) #Aluminio.
     
-    sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3], spec=50) #Silicón.
+    sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3, 0.1], spec=50) #Silicón.
 
     #Colores para los osos.
-    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0], spec=5) #Marrón.
+    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0], spec=5) #Marrón.
     #brown = Material(diffuse=color(139, 69, 19)) #Marrón.
-    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0], spec=5) #Blanco.
+    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0, 0], spec=5) #Blanco.
     
-    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1], spec=10)
+    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1, 0.4], spec=10)
 
-    mirror = Material(diffuse=color(255, 255, 255), albedo=[0.1, 0.8], spec=1425)
+    mirror = Material(diffuse=color(255, 255, 255), albedo=[0, 1, 0.1], spec=1425)
     
     #Creando esferas.
     c1.scene = [
@@ -117,7 +117,7 @@ def escena():
         #Esferas de aluminio.
         Sphere(V3(-3, -2.2,-12), 0.8, al),
         Sphere(V3(2, -2.2,-12), 0.8, al2),
-        Plane(V3(0, 2, -6), 2, 2, mat)
+        Plane(V3(0, 2, -6), 2, 2, mirror)
 
         #Creando esfera en el centro para probar la luz.
         #Sphere(V3(0, 0,-12), 3, brown),
@@ -135,8 +135,12 @@ def get_background(direction):
     else:
         return color(0, 0, 0)
 
-def cast_ray(orig, direction): #Método para el rayo.
+def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     #Revisa contra que chocó y en base a eso regresa un material.
+
+    #Se verifica si no se ha pasado del máximo de recursiones.
+    if recursion > c1.max_recursion_depth:
+        return c1.color_fondo #Asigna el color de fondo.
     
     material, intersect = scene_intersect(orig, direction) #Llamando a la función para la intersección.
 
@@ -144,6 +148,32 @@ def cast_ray(orig, direction): #Método para el rayo.
         return c1.color_fondo
 
     light_dir = (c1.light.position - intersect.point).normalice() #Llamando al método para la luz.
+
+    #Nuevas cosas para el código.
+    if material.albedo[2] > 0: #Si el material tiene reflexión.
+        reversion_dir = direction * -1 #Se invierte el rayo.
+        reflect_dir = reflect(reversion_dir, intersect.normal) #Se calcula el rayo reflejado.
+        reflection_bias = -1.1 if reflect_dir @ intersect.normal else 1.1 #Se calcula el bias.
+        reflect_orig = intersect.point + (intersect.normal * reflection_bias) #Se calcula el origen del rayo reflejado.
+        reflect_col = cast_ray(reflect_orig, reflect_dir, recursion + 1) #Se calcula el color del rayo reflejado.
+    else: #Si no tiene reflexión.
+        reflect_col = color(0, 0, 0)
+
+    #print(reflect_col)
+
+    #Multiplicar el color de la reflexión por el albedo de la reflexión.
+    reflection_color = reflect_col * material.albedo[2] #Se calcula el color de la reflexión.
+
+    #print(reflection_color)
+
+    bias = 1.1 #Definiendo el bias.
+    shadow_orig = intersect.point + (intersect.normal * bias) #Calculando el origen de la sombra.
+    
+    shadowm, shadowin = scene_intersect(shadow_orig, light_dir) #Calculando la intersección de la sombra.
+
+    shadow_intensity = 0 #Intensidad de la sombra.
+    if shadowm: 
+        shadow_intensity = 0.7 #Si hay sombra, entonces la intensidad es 0.6.
 
     diffuse_intensity = light_dir @ intersect.normal #Calculando la intensidad de la luz.
     
@@ -153,7 +183,7 @@ def cast_ray(orig, direction): #Método para el rayo.
     # print(diffuse_intensity)
     # print(material.albedo[0])
 
-    diffuse = material.diffuse * diffuse_intensity * material.albedo[0] #Calculando la reflexión difusa.
+    diffuse = material.diffuse * diffuse_intensity * material.albedo[0] * (1 - shadow_intensity) #Calculando la reflexión difusa.
     #diffuse = material.diffuse * diffuse_intensity
     #print("Diffuse: ", diffuse)
 
@@ -170,8 +200,9 @@ def cast_ray(orig, direction): #Método para el rayo.
     # print(light_reflection)
     # print(reflection_intensity)
     # print(specular_intensity)
-
-    return (diffuse + specular).toBytes()
+    #print(diffuse + specular + reflection_color)
+    #return (diffuse + specular)
+    return (diffuse + specular + reflection_color) #Regresando el color de la esfera.
     #print(diffuse)
     
     #return (diffuse).toBytes() #Regresando el color de la esfera.
