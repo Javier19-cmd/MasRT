@@ -109,7 +109,7 @@ def escena():
     
     mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1, 0.4], spec=10)
 
-    mirror = Material(diffuse=color(255, 255, 255), albedo=[0, 1, 0.1], spec=1425)
+    mirror = Material(diffuse=color(255, 255, 255), albedo=[0, 1, 0.8], spec=1425)
     
     #Creando esferas.
     c1.scene = [
@@ -117,7 +117,7 @@ def escena():
         #Esferas de aluminio.
         Sphere(V3(-3, -2.2,-12), 0.8, al),
         Sphere(V3(2, -2.2,-12), 0.8, al2),
-        Plane(V3(0, 2, -6), 2, 2, mirror)
+        Plane(V3(0, 0.5, -6), 2, 2, mirror)
 
         #Creando esfera en el centro para probar la luz.
         #Sphere(V3(0, 0,-12), 3, brown),
