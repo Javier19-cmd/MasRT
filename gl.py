@@ -138,7 +138,7 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     #Revisa contra que chocó y en base a eso regresa un material.
 
     #Se verifica si no se ha pasado del máximo de recursiones.
-    if recursion > c1.max_recursion_depth:
+    if recursion >= c1.max_recursion_depth:
         return c1.color_fondo #Asigna el color de fondo.
     
     material, intersect = scene_intersect(orig, direction) #Llamando a la función para la intersección.
@@ -148,12 +148,24 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
 
     light_dir = (c1.light.position - intersect.point).normalice() #Llamando al método para la luz.
 
+    #print(reflection_color)
+
+    bias = 1.1 #Definiendo el bias.
+    shadow_orig = intersect.point + (intersect.normal * bias) #Calculando el origen de la sombra.
+    shadowmat, shadowin = scene_intersect(shadow_orig, light_dir) #Calculando la intersección de la sombra.
+
+    shadow_intensity = 0 #Intensidad de la sombra.
+    if shadowmat: 
+        shadow_intensity = 0.75 #Si hay sombra, entonces la intensidad es 0.6.
+
+    diffuse_intensity = light_dir @ intersect.normal #Calculando la intensidad de la luz.
+
     #Nuevas cosas para el código.
     if material.albedo[2] > 0: #Si el material tiene reflexión.
         reversion_dir = direction * -1 #Se invierte el rayo.
         reflect_dir = reflect(reversion_dir, intersect.normal) #Se calcula el rayo reflejado.
-        reflection_bias = -1.1 if reflect_dir @ intersect.normal else 1.1 #Se calcula el bias.
-        reflect_orig = intersect.point + (intersect.normal * reflection_bias) #Se calcula el origen del rayo reflejado.
+        reflection_bias = -0.8 if reflect_dir @ intersect.normal < 0 else 0.8 #Se calcula el bias.
+        reflect_orig = intersect.point - (intersect.normal * reflection_bias) #Se calcula el origen del rayo reflejado.
         reflect_col = cast_ray(reflect_orig, reflect_dir, recursion + 1) #Se calcula el color del rayo reflejado.
     else: #Si no tiene reflexión.
         reflect_col = color(0, 0, 0)
@@ -163,18 +175,6 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     #Multiplicar el color de la reflexión por el albedo de la reflexión.
     reflection_color = reflect_col * material.albedo[2] #Se calcula el color de la reflexión.
 
-    #print(reflection_color)
-
-    bias = 1.1 #Definiendo el bias.
-    shadow_orig = intersect.point + (intersect.normal * bias) #Calculando el origen de la sombra.
-    
-    shadowm, shadowin = scene_intersect(shadow_orig, light_dir) #Calculando la intersección de la sombra.
-
-    shadow_intensity = 0 #Intensidad de la sombra.
-    if shadowm: 
-        shadow_intensity = 0.9 #Si hay sombra, entonces la intensidad es 0.6.
-
-    diffuse_intensity = light_dir @ intersect.normal #Calculando la intensidad de la luz.
     
     #Calculando el color de la esfera.
     
@@ -207,7 +207,22 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     #return (diffuse).toBytes() #Regresando el color de la esfera.
 
 #Método para calcular la reflexión.
-def reflect(I, N):
+def reflect(I, N, roi):
+    #I = dirección del rayo.
+    #N = normal de la superficie.
+    #roi = rayo de salida.
+    etai = 1
+    etat = roi
+
+    cosi = (I @ N) * -1 #Calculando el coseno.
+
+    if cosi < 0: #Si el coseno es menor a 0.
+        cosi = -cosi
+        eati = -eati
+        etat = -etat
+        N = N * -1
+
+
     return (I - (N * 2 * (N @ I))).normalice()
 
 #Función para la intersección.
