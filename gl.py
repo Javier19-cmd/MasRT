@@ -98,19 +98,21 @@ def escena():
     #c1.colors.append(col) #Guardando el color de la esfera.
     
     #Crenado el material de las esferas que tienen los osos en medio.
-    al = Material(diffuse=color(128, 128, 128), albedo=[0.61, 0.25, 0], spec=10) #Aluminio. 
-    al2 = Material(diffuse=color(255, 0, 0), albedo=[0.61, 0.25, 0], spec=10) #Aluminio.
+    al = Material(diffuse=color(128, 128, 128), albedo=[0.61, 0.25, 0, 0], spec=10) #Aluminio. 
+    al2 = Material(diffuse=color(255, 0, 0), albedo=[0.61, 0.25, 0, 0], spec=10) #Aluminio.
     
-    sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3, 0.1], spec=50) #Silicón.
+    sil = Material(diffuse=color(0, 128, 0), albedo=[0.6, 0.3, 0.1, 0], spec=50) #Silicón.
 
     #Colores para los osos.
-    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0.6], spec=80) #Marrón.
+    brown = Material(diffuse=color(139, 69, 19), albedo=[1, 0, 0.6, 0], spec=80) #Marrón.
     #brown = Material(diffuse=color(139, 69, 19)) #Marrón.
-    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0, 0], spec=5) #Blanco.
+    white = Material(diffuse=color(255, 250, 250), albedo=[1, 0, 0, 0], spec=5) #Blanco.
     
-    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1, 0.4], spec=10)
+    mat = Material(diffuse=color(212, 175, 55), albedo=[0.5, 0.1, 0.4, 0], spec=10)
 
-    mirror = Material(diffuse=color(255, 255, 255), albedo=[0, 1, 0.8], spec=1425)
+    mirror = Material(diffuse=color(255, 255, 255), albedo=[0, 1, 0.8, 0], spec=1425) # Espejo.
+
+    glass = Material(diffuse=color(255, 255, 255), albedo=[0, 0.5, 0.1, 0.0], spec=125, refractive_index=1.5) # Vidrio.
     
     #Creando esferas.
     c1.scene = [
@@ -119,6 +121,7 @@ def escena():
         Sphere(V3(-0.5, -2.2,-12), 0.8, al),
         Sphere(V3(1, -2.2,-12), 0.8, sil),
         Sphere(V3(-2, -2.2,-12), 0.8, mirror),
+        Sphere(V3(2.5, -2.2,-12), 0.8, glass),
         Plane(V3(0, 0.5, -6), 2, 2, brown)
 
     ]
@@ -160,7 +163,7 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
 
     diffuse_intensity = light_dir @ intersect.normal #Calculando la intensidad de la luz.
 
-    #Nuevas cosas para el código.
+    #Reflexión.
     if material.albedo[2] > 0: #Si el material tiene reflexión.
         reversion_dir = direction * -1 #Se invierte el rayo.
         reflect_dir = reflect(reversion_dir, intersect.normal) #Se calcula el rayo reflejado.
@@ -170,10 +173,21 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     else: #Si no tiene reflexión.
         reflect_col = color(0, 0, 0)
 
-    #print(reflect_col)
-
     #Multiplicar el color de la reflexión por el albedo de la reflexión.
     reflection_color = reflect_col * material.albedo[2] #Se calcula el color de la reflexión.
+
+    #Refracción.
+    if material.albedo[3] > 0: #Si el material tiene reflexión.
+        refract_dir = refract(direction, intersect.normal, material.refractive_index) #Se calcula el rayo reflejado.
+        refract_bias = -0.8 if refract_dir @ intersect.normal < 0 else 0.8 #Se calcula el bias.
+        refract_orig = intersect.point - (intersect.normal * refract_bias) #Se calcula el origen del rayo reflejado.
+        refract_col = cast_ray(refract_orig, refract_dir, recursion + 1) #Se calcula el color del rayo reflejado.
+    else: #Si no tiene reflexión.
+        refract_col = color(0, 0, 0)
+
+    #print(reflect_col)
+    #Multiplicar el color de la reflexión por el albedo de la reflexión.
+    refraction = refract_col * material.albedo[3] #Se calcula el color de la reflexión.
 
     
     #Calculando el color de la esfera.
@@ -201,13 +215,17 @@ def cast_ray(orig, direction, recursion=0): #Método para el rayo.
     # print(specular_intensity)
     #print(diffuse + specular + reflection_color)
     #return (diffuse + specular)
-    return (diffuse + specular + reflection_color) #Regresando el color de la esfera.
+    return (diffuse + specular + reflection_color + refraction) #Regresando el color de la esfera.
     #print(diffuse)
     
     #return (diffuse).toBytes() #Regresando el color de la esfera.
 
 #Método para calcular la reflexión.
-def reflect(I, N, roi):
+def reflect(I, N):
+    return (I - N * (2 * (I @ N))).normalice()
+
+#Método para calcular la refracción.
+def refract(I, N, roi):
     #I = dirección del rayo.
     #N = normal de la superficie.
     #roi = rayo de salida.
@@ -222,8 +240,18 @@ def reflect(I, N, roi):
         etat = -etat
         N = N * -1
 
+    eta = etai/etat #Calculando la razón de eta.
 
-    return (I - (N * 2 * (N @ I))).normalice()
+    k = 1 - eta**2 * (1 - cosi**2) #Calculando k.
+
+    if k < 0: #Si k es menor a 0.
+        return V3(0, 0, 0)
+
+    cost = k ** 0.5 #Calculando el coseno de t.
+
+    return ((I * eta) + (N * (eta * cosi - cost))).normalice() #Regresando el vector de la reflexión.
+
+    #return (I - (N * 2 * (N @ I))).normalice()
 
 #Función para la intersección.
 def scene_intersect(orig, direction):
